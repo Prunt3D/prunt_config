@@ -1,0 +1,19 @@
+name = "prunt_config"
+description = "Global configuration for Prunt."
+version = "0.1.0-dev"
+
+authors = ["Liam Powell"]
+maintainers = ["Liam Powell <liam@liampll.com>"]
+maintainers-logins = ["liampwll"]
+
+[[depends-on]]
+prunt_physical_types = "*"
+prunt_motion_planner = "*"
+[[pins]]
+prunt_physical_types = { path = "../prunt_physical_types" }
+prunt_motion_planner = { path = "../prunt_motion_planner" }
+
+[build-switches]
+release.optimization = []
+[[depends-on]]
+ada_toml = "~0.3.0"
