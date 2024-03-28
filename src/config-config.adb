@@ -528,19 +528,19 @@ package body Config.Config is
                Table                  := TOML_Data.Get ("Fan").Get (Fan'Image);
                Data.Disable_Below_PWM := From_TOML (Table.Get ("Disable_Below_PWM"));
                Data.Max_PWM           := From_TOML (Table.Get ("Max_PWM"));
-               Data.Fixed_Voltage     := From_TOML (Table.Get ("Fixed_Voltage"));
+               Data.Fixed_Voltage     := From_TOML (Table.Get ("Fixed_Voltage")) * volt;
             when Dynamic_Voltage_Kind =>
                Data := (Kind => Dynamic_Voltage_Kind, others => <>);
                Write (Data, Fan, Append_Only => True);
                Table                      := TOML_Data.Get ("Fan").Get (Fan'Image);
-               Data.Disable_Below_Voltage := From_TOML (Table.Get ("Disable_Below_Voltage"));
-               Data.Max_Voltage           := From_TOML (Table.Get ("Max_Voltage"));
+               Data.Disable_Below_Voltage := From_TOML (Table.Get ("Disable_Below_Voltage")) * volt;
+               Data.Max_Voltage           := From_TOML (Table.Get ("Max_Voltage")) * volt;
             when Always_On_Kind =>
                Data := (Kind => Always_On_Kind, others => <>);
                Write (Data, Fan, Append_Only => True);
                Table                  := TOML_Data.Get ("Fan").Get (Fan'Image);
                Data.Always_On_PWM     := From_TOML (Table.Get ("Always_On_PWM"));
-               Data.Always_On_Voltage := From_TOML (Table.Get ("Always_On_Voltage"));
+               Data.Always_On_Voltage := From_TOML (Table.Get ("Always_On_Voltage")) * volt;
          end case;
       end Read;
 
