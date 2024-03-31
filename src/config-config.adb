@@ -204,9 +204,9 @@ package body Config.Config is
          Table.Set ("Invert_Direction", To_TOML (Data.Invert_Direction));
          Table.Set ("Enabled_On_High", To_TOML (Data.Enabled_On_High));
          Table.Set ("Fault_On_High", To_TOML (Data.Fault_On_High));
-         Table.Set ("Mm_Per_Step", To_TOML (Data.Mm_Per_Step));
-         Table.Set ("Direction_Setup_Time", To_TOML (Data.Direction_Setup_Time));
-         Table.Set ("Step_Time", To_TOML (Data.Step_Time));
+         Table.Set ("Mm_Per_Step", To_TOML (Data.Mm_Per_Step / mm));
+         Table.Set ("Direction_Setup_Time", To_TOML (Data.Direction_Setup_Time / s));
+         Table.Set ("Step_Time", To_TOML (Data.Step_Time / s));
 
          Maybe_Read_File;
          TOML_Data.Set_Default ("Stepper", Create_Table);
@@ -268,7 +268,7 @@ package body Config.Config is
          Table.Set ("Lower_Pos_Limit", To_TOML (Data.Lower_Pos_Limit));
          Table.Set ("Upper_Pos_Limit", To_TOML (Data.Upper_Pos_Limit));
          Table.Set ("Max_Limits", To_TOML (Data.Max_Limits));
-         Table.Set ("Max_Feedrate", To_TOML (Data.Max_Feedrate));
+         Table.Set ("Max_Feedrate", To_TOML (Data.Max_Feedrate / (mm / s)));
          Table.Set ("Max_Axial_Velocities", To_TOML (Data.Max_Axial_Velocities));
          Table.Set ("Ignore_E_Feedrate_In_XYZE_Moves", To_TOML (Data.Ignore_E_Feedrate_In_XYZE_Moves));
          Table.Set ("Planning_Scaler", To_TOML (Data.Planning_Scaler));
@@ -346,11 +346,11 @@ package body Config.Config is
          case Data.Kind is
             when Double_Tap_Kind =>
                Table.Set ("Switch", To_TOML (Data.Switch));
-               Table.Set ("First_Move_Distance", To_TOML (Data.First_Move_Distance));
-               Table.Set ("Second_Move_Distance", To_TOML (Data.Second_Move_Distance));
-               Table.Set ("Switch_Position", To_TOML (Data.Switch_Position));
+               Table.Set ("First_Move_Distance", To_TOML (Data.First_Move_Distance / mm));
+               Table.Set ("Second_Move_Distance", To_TOML (Data.Second_Move_Distance / mm));
+               Table.Set ("Switch_Position", To_TOML (Data.Switch_Position / mm));
             when Set_To_Value_Kind =>
-               Table.Set ("Value", To_TOML (Data.Value));
+               Table.Set ("Value", To_TOML (Data.Value / mm));
          end case;
 
          Maybe_Read_File;
@@ -378,9 +378,9 @@ package body Config.Config is
       procedure Write (Data : Extruder_Parameters; Append_Only : Boolean := False) is
          Table : TOML_Value := Create_Table;
       begin
-         Table.Set ("Nozzle_Diameter", To_TOML (Data.Nozzle_Diameter));
-         Table.Set ("Filament_Diameter", To_TOML (Data.Filament_Diameter));
-         Table.Set ("Starting_Pressure_Advance_Time", To_TOML (Data.Starting_Pressure_Advance_Time));
+         Table.Set ("Nozzle_Diameter", To_TOML (Data.Nozzle_Diameter / mm));
+         Table.Set ("Filament_Diameter", To_TOML (Data.Filament_Diameter / mm));
+         Table.Set ("Starting_Pressure_Advance_Time", To_TOML (Data.Starting_Pressure_Advance_Time / s));
 
          Maybe_Read_File;
          TOML_Data.Set_Default ("Extruder", Create_Table);
@@ -406,8 +406,8 @@ package body Config.Config is
          Table : TOML_Value := Create_Table;
       begin
          Table.Set ("Enabled", To_TOML (Data.Enabled));
-         Table.Set ("Minimum_Temperature", To_TOML (Data.Minimum_Temperature));
-         Table.Set ("Maximum_Temperature", To_TOML (Data.Maximum_Temperature));
+         Table.Set ("Minimum_Temperature", To_TOML (Data.Minimum_Temperature / celcius));
+         Table.Set ("Maximum_Temperature", To_TOML (Data.Maximum_Temperature / celcius));
 
          Maybe_Read_File;
          TOML_Data.Set_Default ("Thermistor", Create_Table);
@@ -511,11 +511,11 @@ package body Config.Config is
                null;
             when Beacon_Kind =>
                Table.Set ("Serial_Port_Path", To_TOML (Data.Serial_Port_Path));
-               Table.Set ("X_Offset", To_TOML (Data.X_Offset));
-               Table.Set ("Y_Offset", To_TOML (Data.Y_Offset));
-               Table.Set ("Calibration_Floor", To_TOML (Data.Calibration_Floor));
-               Table.Set ("Calibration_Ceiling", To_TOML (Data.Calibration_Ceiling));
-               Table.Set ("Calibration_Feedrate", To_TOML (Data.Calibration_Feedrate));
+               Table.Set ("X_Offset", To_TOML (Data.X_Offset / mm));
+               Table.Set ("Y_Offset", To_TOML (Data.Y_Offset / mm));
+               Table.Set ("Calibration_Floor", To_TOML (Data.Calibration_Floor / mm));
+               Table.Set ("Calibration_Ceiling", To_TOML (Data.Calibration_Ceiling / mm));
+               Table.Set ("Calibration_Feedrate", To_TOML (Data.Calibration_Feedrate / (mm / s)));
          end case;
 
          Maybe_Read_File;
