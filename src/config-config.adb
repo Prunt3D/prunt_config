@@ -59,7 +59,7 @@ package body Config.Config is
      (Path_Strings.To_Bounded_String (V.As_String));
 
    function To_TOML (Pos : Position) return TOML_Value is
-      Table : TOML_Value := Create_Table;
+      Table : constant TOML_Value := Create_Table;
    begin
       for I in Pos'Range loop
          Table.Set (I'Image, To_TOML (Pos (I) / mm));
@@ -77,7 +77,7 @@ package body Config.Config is
    end From_TOML;
 
    function To_TOML (Steppers : Attached_Steppers) return TOML_Value is
-      Value : TOML_Value := Create_Array;
+      Value : constant TOML_Value := Create_Array;
    begin
       for I in Steppers'Range loop
          if Steppers (I) then
@@ -97,7 +97,7 @@ package body Config.Config is
    end From_TOML;
 
    function To_TOML (Limits : Motion_Planner.Kinematic_Limits) return TOML_Value is
-      Table : TOML_Value := Create_Table;
+      Table : constant TOML_Value := Create_Table;
    begin
       Table.Set ("Acceleration_Max", To_TOML (Limits.Acceleration_Max / (mm / s**2)));
       Table.Set ("Jerk_Max", To_TOML (Limits.Jerk_Max / (mm / s**3)));
@@ -118,7 +118,7 @@ package body Config.Config is
    end From_TOML;
 
    function To_TOML (Scale : Position_Scale) return TOML_Value is
-      Table : TOML_Value := Create_Table;
+      Table : constant TOML_Value := Create_Table;
    begin
       for I in Scale'Range loop
          Table.Set (I'Image, To_TOML (Scale (I)));
@@ -136,7 +136,7 @@ package body Config.Config is
    end From_TOML;
 
    function To_TOML (Vels : Axial_Velocities) return TOML_Value is
-      Table : TOML_Value := Create_Table;
+      Table : constant TOML_Value := Create_Table;
    begin
       for I in Vels'Range loop
          Table.Set (I'Image, To_TOML (Vels (I) / (mm / s)));
@@ -154,8 +154,17 @@ package body Config.Config is
    end From_TOML;
 
    --  TODO: It might make sense to make these recursively merge tables.
-   function Left (Key : Unbounded_UTF8_String; L, R : TOML_Value) return TOML_Value is (L);
-   function Right (Key : Unbounded_UTF8_String; L, R : TOML_Value) return TOML_Value is (R);
+   function Left (Key : Unbounded_UTF8_String; L, R : TOML_Value) return TOML_Value is
+      pragma Unreferenced (Key, R);
+   begin
+      return L;
+   end Left;
+
+   function Right (Key : Unbounded_UTF8_String; L, R : TOML_Value) return TOML_Value is
+      pragma Unreferenced (Key, L);
+   begin
+      return R;
+   end Right;
 
    protected body Config_File is
 
@@ -170,7 +179,7 @@ package body Config.Config is
       end Read;
 
       procedure Write (Data : Prunt_Parameters; Append_Only : Boolean := False) is
-         Table : TOML_Value := Create_Table;
+         Table : constant TOML_Value := Create_Table;
       begin
          Table.Set ("Enabled", To_TOML (Data.Enabled));
 
@@ -198,7 +207,7 @@ package body Config.Config is
       end Read;
 
       procedure Write (Data : Stepper_Parameters; Stepper : Stepper_Name; Append_Only : Boolean := False) is
-         Table : TOML_Value := Create_Table;
+         Table : constant TOML_Value := Create_Table;
       begin
          Table.Set ("Enabled", To_TOML (Data.Enabled));
          Table.Set ("Invert_Direction", To_TOML (Data.Invert_Direction));
@@ -254,7 +263,7 @@ package body Config.Config is
       end Read;
 
       procedure Write (Data : Kinematics_Parameters; Append_Only : Boolean := False) is
-         Table : TOML_Value := Create_Table;
+         Table : constant TOML_Value := Create_Table;
       begin
          Table.Set ("Kind", To_TOML (Data.Kind));
          case Data.Kind is
@@ -298,7 +307,7 @@ package body Config.Config is
       procedure Write
         (Data : Input_Switch_Parameters; Input_Switch : Input_Switch_Name; Append_Only : Boolean := False)
       is
-         Table : TOML_Value := Create_Table;
+         Table : constant TOML_Value := Create_Table;
       begin
          Table.Set ("Enabled", To_TOML (Data.Enabled));
          Table.Set ("Hit_On_High", To_TOML (Data.Hit_On_High));
@@ -340,7 +349,7 @@ package body Config.Config is
       end Read;
 
       procedure Write (Data : Homing_Parameters; Axis : Axis_Name; Append_Only : Boolean := False) is
-         Table : TOML_Value := Create_Table;
+         Table : constant TOML_Value := Create_Table;
       begin
          Table.Set ("Kind", To_TOML (Data.Kind));
          case Data.Kind is
@@ -376,7 +385,7 @@ package body Config.Config is
       end Read;
 
       procedure Write (Data : Extruder_Parameters; Append_Only : Boolean := False) is
-         Table : TOML_Value := Create_Table;
+         Table : constant TOML_Value := Create_Table;
       begin
          Table.Set ("Nozzle_Diameter", To_TOML (Data.Nozzle_Diameter / mm));
          Table.Set ("Filament_Diameter", To_TOML (Data.Filament_Diameter / mm));
@@ -403,7 +412,7 @@ package body Config.Config is
       end Read;
 
       procedure Write (Data : Thermistor_Parameters; Thermistor : Thermistor_Name; Append_Only : Boolean := False) is
-         Table : TOML_Value := Create_Table;
+         Table : constant TOML_Value := Create_Table;
       begin
          Table.Set ("Enabled", To_TOML (Data.Enabled));
          Table.Set ("Minimum_Temperature", To_TOML (Data.Minimum_Temperature / celcius));
@@ -450,7 +459,7 @@ package body Config.Config is
       end Read;
 
       procedure Write (Data : Heater_Parameters; Heater : Heater_Name; Append_Only : Boolean := False) is
-         Table : TOML_Value := Create_Table;
+         Table : constant TOML_Value := Create_Table;
       begin
          Table.Set ("Kind", To_TOML (Data.Kind));
          case Data.Kind is
@@ -503,7 +512,7 @@ package body Config.Config is
       end Read;
 
       procedure Write (Data : Bed_Mesh_Parameters; Append_Only : Boolean := False) is
-         Table : TOML_Value := Create_Table;
+         Table : constant TOML_Value := Create_Table;
       begin
          Table.Set ("Kind", To_TOML (Data.Kind));
          case Data.Kind is
@@ -561,7 +570,7 @@ package body Config.Config is
       end Read;
 
       procedure Write (Data : Fan_Parameters; Fan : Fan_Name; Append_Only : Boolean := False) is
-         Table : TOML_Value := Create_Table;
+         Table : constant TOML_Value := Create_Table;
       begin
          Table.Set ("Kind", To_TOML (Data.Kind));
          case Data.Kind is
@@ -601,7 +610,7 @@ package body Config.Config is
       end Read;
 
       procedure Write (Data : G_Code_Assignment_Parameters; Append_Only : Boolean := False) is
-         Table : TOML_Value := Create_Table;
+         Table : constant TOML_Value := Create_Table;
       begin
          Table.Set ("Bed_Heater", To_TOML (Data.Bed_Heater));
          --  Table.Set ("Chamber_Heater", To_TOML (Data.Chamber_Heater));
