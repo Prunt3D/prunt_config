@@ -36,26 +36,21 @@ package Config.Config is
    type Kinematics_Kind is (Cartesian_Kind, Core_XY_Kind);
 
    type Kinematics_Parameters (Kind : Kinematics_Kind := Cartesian_Kind) is record
-      Lower_Pos_Limit      : Position                        := [E_Axis => Length'First / 2.0, others => 0.0 * mm];
-      Upper_Pos_Limit      : Position                        := [E_Axis => Length'Last / 2.0, others => 0.0 * mm];
-      Max_Limits           : Motion_Planner.Kinematic_Limits :=
-        (Tangential_Velocity_Max => 0.0 * mm / s,
-         Acceleration_Max        => 0.0 * mm / s**2,
-         Jerk_Max                => 0.0 * mm / s**3,
-         Snap_Max                => 0.0 * mm / s**4,
-         Crackle_Max             => 0.0 * mm / s**5,
-         Chord_Error_Max         => 0.0 * mm);
-      Starting_Limits      : Motion_Planner.Kinematic_Limits :=
-        (Tangential_Velocity_Max => 0.0 * mm / s,
-         Acceleration_Max        => 0.0 * mm / s**2,
-         Jerk_Max                => 0.0 * mm / s**3,
-         Snap_Max                => 0.0 * mm / s**4,
-         Crackle_Max             => 0.0 * mm / s**5,
-         Chord_Error_Max         => 0.0 * mm);
-      Planning_Scaler      : Position_Scale                  := [others => 1.0];
-      Minimum_Cruise_Ratio : Cruise_Ratio                    := Cruise_Ratio'First;
-      Z_Steppers           : Attached_Steppers               := [others => False];
-      E_Steppers           : Attached_Steppers               := [others => False];
+      Lower_Pos_Limit                 : Position := [E_Axis => Length'First / 2.0, others => 0.0 * mm];
+      Upper_Pos_Limit                 : Position := [E_Axis => Length'Last / 2.0, others => 0.0 * mm];
+      Max_Limits                      : Motion_Planner.Kinematic_Limits :=
+        (Acceleration_Max => 0.0 * mm / s**2,
+         Jerk_Max         => 0.0 * mm / s**3,
+         Snap_Max         => 0.0 * mm / s**4,
+         Crackle_Max      => 0.0 * mm / s**5,
+         Chord_Error_Max  => 0.0 * mm);
+      Max_Feedrate                    : Velocity                        := 0.0 * mm / s;
+      Max_Axial_Velocities            : Axial_Velocities                := [others => 0.0 * mm / s];
+      Ignore_E_Feedrate_In_XYZE_Moves : Boolean                         := True;
+      Planning_Scaler                 : Position_Scale                  := [others => 1.0];
+      Minimum_Cruise_Ratio            : Cruise_Ratio                    := Cruise_Ratio'First;
+      Z_Steppers                      : Attached_Steppers               := [others => False];
+      E_Steppers                      : Attached_Steppers               := [others => False];
       case Kind is
          when Cartesian_Kind =>
             X_Steppers : Attached_Steppers := [others => False];
@@ -76,24 +71,10 @@ package Config.Config is
    type Homing_Parameters (Kind : Homing_Kind := Double_Tap_Kind) is record
       case Kind is
          when Double_Tap_Kind =>
-            Switch               : Input_Switch_Name               := Input_Switch_Name'First;
-            First_Move_Distance  : Length                          := 0.0 * mm;
-            First_Move_Limits    : Motion_Planner.Kinematic_Limits :=
-              (Tangential_Velocity_Max => 0.0 * mm / s,
-               Acceleration_Max        => 0.0 * mm / s**2,
-               Jerk_Max                => 0.0 * mm / s**3,
-               Snap_Max                => 0.0 * mm / s**4,
-               Crackle_Max             => 0.0 * mm / s**5,
-               Chord_Error_Max         => 0.0 * mm);
-            Second_Move_Distance : Length                          := 0.0 * mm;
-            Second_Move_Limits   : Motion_Planner.Kinematic_Limits :=
-              (Tangential_Velocity_Max => 0.0 * mm / s,
-               Acceleration_Max        => 0.0 * mm / s**2,
-               Jerk_Max                => 0.0 * mm / s**3,
-               Snap_Max                => 0.0 * mm / s**4,
-               Crackle_Max             => 0.0 * mm / s**5,
-               Chord_Error_Max         => 0.0 * mm);
-            Switch_Position      : Length                          := 0.0 * mm;
+            Switch               : Input_Switch_Name := Input_Switch_Name'First;
+            First_Move_Distance  : Length            := 0.0 * mm;
+            Second_Move_Distance : Length            := 0.0 * mm;
+            Switch_Position      : Length            := 0.0 * mm;
          when Set_To_Value_Kind =>
             Value : Length := 0.0 * mm;
       end case;
@@ -134,18 +115,12 @@ package Config.Config is
          when No_Mesh_Kind =>
             null;
          when Beacon_Kind =>
-            Serial_Port_Path    : Path_Strings.Bounded_String     := Path_Strings.To_Bounded_String ("");
-            X_Offset            : Length                          := 0.0 * mm;
-            Y_Offset            : Length                          := 0.0 * mm;
-            Calibration_Floor   : Length                          := 0.2 * mm;
-            Calibration_Ceiling : Length                          := 5.0 * mm;
-            Calibration_Limits  : Motion_Planner.Kinematic_Limits :=
-              (Tangential_Velocity_Max => 1.0 * mm / s,
-               Acceleration_Max        => 1.0E2 * mm / s**2,
-               Jerk_Max                => 1.0E4 * mm / s**3,
-               Snap_Max                => 1.0E6 * mm / s**4,
-               Crackle_Max             => 1.0E8 * mm / s**5,
-               Chord_Error_Max         => 0.0 * mm);
+            Serial_Port_Path     : Path_Strings.Bounded_String := Path_Strings.To_Bounded_String ("");
+            X_Offset             : Length                      := 0.0 * mm;
+            Y_Offset             : Length                      := 0.0 * mm;
+            Calibration_Floor    : Length                      := 0.2 * mm;
+            Calibration_Ceiling  : Length                      := 5.0 * mm;
+            Calibration_Feedrate : Velocity                    := 1.0 * mm / s;
       end case;
    end record;
 
@@ -169,9 +144,9 @@ package Config.Config is
    end record;
 
    type G_Code_Assignment_Parameters is record
-      Bed_Heater     : Heater_Name := Heater_Name'First;
+      Bed_Heater    : Heater_Name := Heater_Name'First;
       --  Chamber_Heater : Heater_Name := Heater_Name'First;
-      Hotend_Heater  : Heater_Name := Heater_Name'First;
+      Hotend_Heater : Heater_Name := Heater_Name'First;
    end record;
 
    protected Config_File is

@@ -99,7 +99,6 @@ package body Config.Config is
    function To_TOML (Limits : Motion_Planner.Kinematic_Limits) return TOML_Value is
       Table : TOML_Value := Create_Table;
    begin
-      Table.Set ("Tangential_Velocity_Max", To_TOML (Limits.Tangential_Velocity_Max / (mm / s)));
       Table.Set ("Acceleration_Max", To_TOML (Limits.Acceleration_Max / (mm / s**2)));
       Table.Set ("Jerk_Max", To_TOML (Limits.Jerk_Max / (mm / s**3)));
       Table.Set ("Snap_Max", To_TOML (Limits.Snap_Max / (mm / s**4)));
@@ -111,12 +110,11 @@ package body Config.Config is
    function From_TOML (Table : TOML_Value) return Motion_Planner.Kinematic_Limits is
    begin
       return
-        (Tangential_Velocity_Max => From_TOML (Table.Get ("Tangential_Velocity_Max")) * mm / s,
-         Acceleration_Max        => From_TOML (Table.Get ("Acceleration_Max")) * mm / s**2,
-         Jerk_Max                => From_TOML (Table.Get ("Jerk_Max")) * mm / s**3,
-         Snap_Max                => From_TOML (Table.Get ("Snap_Max")) * mm / s**4,
-         Crackle_Max             => From_TOML (Table.Get ("Crackle_Max")) * mm / s**5,
-         Chord_Error_Max         => From_TOML (Table.Get ("Chord_Error_Max")) * mm);
+        (Acceleration_Max => From_TOML (Table.Get ("Acceleration_Max")) * mm / s**2,
+         Jerk_Max         => From_TOML (Table.Get ("Jerk_Max")) * mm / s**3,
+         Snap_Max         => From_TOML (Table.Get ("Snap_Max")) * mm / s**4,
+         Crackle_Max      => From_TOML (Table.Get ("Crackle_Max")) * mm / s**5,
+         Chord_Error_Max  => From_TOML (Table.Get ("Chord_Error_Max")) * mm);
    end From_TOML;
 
    function To_TOML (Scale : Position_Scale) return TOML_Value is
@@ -135,6 +133,24 @@ package body Config.Config is
          Scale (I) := From_TOML (Table.Get (I'Image));
       end loop;
       return Scale;
+   end From_TOML;
+
+   function To_TOML (Vels : Axial_Velocities) return TOML_Value is
+      Table : TOML_Value := Create_Table;
+   begin
+      for I in Vels'Range loop
+         Table.Set (I'Image, To_TOML (Vels (I) / (mm / s)));
+      end loop;
+      return Table;
+   end To_TOML;
+
+   function From_TOML (Table : TOML_Value) return Axial_Velocities is
+      Vels : Axial_Velocities;
+   begin
+      for I in Vels'Range loop
+         Vels (I) := From_TOML (Table.Get (I'Image)) * mm / s;
+      end loop;
+      return Vels;
    end From_TOML;
 
    --  TODO: It might make sense to make these recursively merge tables.
@@ -225,14 +241,16 @@ package body Config.Config is
                Data.A_Steppers := From_TOML (Table.Get ("A_Steppers"));
                Data.B_Steppers := From_TOML (Table.Get ("B_Steppers"));
          end case;
-         Data.Lower_Pos_Limit      := From_TOML (Table.Get ("Lower_Pos_Limit"));
-         Data.Upper_Pos_Limit      := From_TOML (Table.Get ("Upper_Pos_Limit"));
-         Data.Max_Limits           := From_TOML (Table.Get ("Max_Limits"));
-         Data.Starting_Limits      := From_TOML (Table.Get ("Starting_Limits"));
-         Data.Planning_Scaler      := From_TOML (Table.Get ("Planning_Scaler"));
-         Data.Minimum_Cruise_Ratio := From_TOML (Table.Get ("Minimum_Cruise_Ratio"));
-         Data.Z_Steppers           := From_TOML (Table.Get ("Z_Steppers"));
-         Data.E_Steppers           := From_TOML (Table.Get ("E_Steppers"));
+         Data.Lower_Pos_Limit                 := From_TOML (Table.Get ("Lower_Pos_Limit"));
+         Data.Upper_Pos_Limit                 := From_TOML (Table.Get ("Upper_Pos_Limit"));
+         Data.Max_Limits                      := From_TOML (Table.Get ("Max_Limits"));
+         Data.Max_Feedrate                    := From_TOML (Table.Get ("Max_Feedrate")) * mm / s;
+         Data.Max_Axial_Velocities            := From_TOML (Table.Get ("Max_Axial_Velocities"));
+         Data.Ignore_E_Feedrate_In_XYZE_Moves := From_TOML (Table.Get ("Ignore_E_Feedrate_In_XYZE_Moves"));
+         Data.Planning_Scaler                 := From_TOML (Table.Get ("Planning_Scaler"));
+         Data.Minimum_Cruise_Ratio            := From_TOML (Table.Get ("Minimum_Cruise_Ratio"));
+         Data.Z_Steppers                      := From_TOML (Table.Get ("Z_Steppers"));
+         Data.E_Steppers                      := From_TOML (Table.Get ("E_Steppers"));
       end Read;
 
       procedure Write (Data : Kinematics_Parameters; Append_Only : Boolean := False) is
@@ -250,7 +268,9 @@ package body Config.Config is
          Table.Set ("Lower_Pos_Limit", To_TOML (Data.Lower_Pos_Limit));
          Table.Set ("Upper_Pos_Limit", To_TOML (Data.Upper_Pos_Limit));
          Table.Set ("Max_Limits", To_TOML (Data.Max_Limits));
-         Table.Set ("Starting_Limits", To_TOML (Data.Starting_Limits));
+         Table.Set ("Max_Feedrate", To_TOML (Data.Max_Feedrate));
+         Table.Set ("Max_Axial_Velocities", To_TOML (Data.Max_Axial_Velocities));
+         Table.Set ("Ignore_E_Feedrate_In_XYZE_Moves", To_TOML (Data.Ignore_E_Feedrate_In_XYZE_Moves));
          Table.Set ("Planning_Scaler", To_TOML (Data.Planning_Scaler));
          Table.Set ("Minimum_Cruise_Ratio", To_TOML (Data.Minimum_Cruise_Ratio));
          Table.Set ("Z_Steppers", To_TOML (Data.Z_Steppers));
@@ -309,9 +329,7 @@ package body Config.Config is
                Table                     := TOML_Data.Get ("Homing").Get (Axis'Image);
                Data.Switch               := From_TOML (Table.Get ("Switch"));
                Data.First_Move_Distance  := From_TOML (Table.Get ("First_Move_Distance")) * mm;
-               Data.First_Move_Limits    := From_TOML (Table.Get ("First_Move_Limits"));
                Data.Second_Move_Distance := From_TOML (Table.Get ("Second_Move_Distance")) * mm;
-               Data.Second_Move_Limits   := From_TOML (Table.Get ("Second_Move_Limits"));
                Data.Switch_Position      := From_TOML (Table.Get ("Switch_Position")) * mm;
             when Set_To_Value_Kind =>
                Data := (Kind => Set_To_Value_Kind, others => <>);
@@ -329,9 +347,7 @@ package body Config.Config is
             when Double_Tap_Kind =>
                Table.Set ("Switch", To_TOML (Data.Switch));
                Table.Set ("First_Move_Distance", To_TOML (Data.First_Move_Distance));
-               Table.Set ("First_Move_Limits", To_TOML (Data.First_Move_Limits));
                Table.Set ("Second_Move_Distance", To_TOML (Data.Second_Move_Distance));
-               Table.Set ("Second_Move_Limits", To_TOML (Data.Second_Move_Limits));
                Table.Set ("Switch_Position", To_TOML (Data.Switch_Position));
             when Set_To_Value_Kind =>
                Table.Set ("Value", To_TOML (Data.Value));
@@ -476,13 +492,13 @@ package body Config.Config is
             when Beacon_Kind =>
                Data := (Kind => Beacon_Kind, others => <>);
                Write (Data, Append_Only => True);
-               Table                    := TOML_Data.Get ("Bed_Mesh");
-               Data.Serial_Port_Path    := From_TOML (Table.Get ("Serial_Port_Path"));
-               Data.X_Offset            := From_TOML (Table.Get ("X_Offset")) * mm;
-               Data.Y_Offset            := From_TOML (Table.Get ("Y_Offset")) * mm;
-               Data.Calibration_Floor   := From_TOML (Table.Get ("Calibration_Floor")) * mm;
-               Data.Calibration_Ceiling := From_TOML (Table.Get ("Calibration_Ceiling")) * mm;
-               Data.Calibration_Limits  := From_TOML (Table.Get ("Calibration_Limits"));
+               Table                     := TOML_Data.Get ("Bed_Mesh");
+               Data.Serial_Port_Path     := From_TOML (Table.Get ("Serial_Port_Path"));
+               Data.X_Offset             := From_TOML (Table.Get ("X_Offset")) * mm;
+               Data.Y_Offset             := From_TOML (Table.Get ("Y_Offset")) * mm;
+               Data.Calibration_Floor    := From_TOML (Table.Get ("Calibration_Floor")) * mm;
+               Data.Calibration_Ceiling  := From_TOML (Table.Get ("Calibration_Ceiling")) * mm;
+               Data.Calibration_Feedrate := From_TOML (Table.Get ("Calibration_Feedrate")) * mm / s;
          end case;
       end Read;
 
@@ -499,7 +515,7 @@ package body Config.Config is
                Table.Set ("Y_Offset", To_TOML (Data.Y_Offset));
                Table.Set ("Calibration_Floor", To_TOML (Data.Calibration_Floor));
                Table.Set ("Calibration_Ceiling", To_TOML (Data.Calibration_Ceiling));
-               Table.Set ("Calibration_Limits", To_TOML (Data.Calibration_Limits));
+               Table.Set ("Calibration_Feedrate", To_TOML (Data.Calibration_Feedrate));
          end case;
 
          Maybe_Read_File;
@@ -579,9 +595,9 @@ package body Config.Config is
          Write (Data, Append_Only => True);
          Table := TOML_Data.Get ("G_Code_Assignment");
 
-         Data.Bed_Heater     := From_TOML (Table.Get ("Bed_Heater"));
+         Data.Bed_Heater    := From_TOML (Table.Get ("Bed_Heater"));
          --  Data.Chamber_Heater := From_TOML (Table.Get ("Chamber_Heater"));
-         Data.Hotend_Heater  := From_TOML (Table.Get ("Hotend_Heater"));
+         Data.Hotend_Heater := From_TOML (Table.Get ("Hotend_Heater"));
       end Read;
 
       procedure Write (Data : G_Code_Assignment_Parameters; Append_Only : Boolean := False) is
