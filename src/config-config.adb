@@ -117,25 +117,22 @@ package body Config.Config is
       return Steppers;
    end From_TOML;
 
-   function To_TOML (Limits : Motion_Planner.Kinematic_Limits) return TOML_Value is
+   function To_TOML (Vels : Axial_Velocities) return TOML_Value is
       Table : constant TOML_Value := Create_Table;
    begin
-      Table.Set ("Acceleration_Max", To_TOML (Limits.Acceleration_Max / (mm / s**2)));
-      Table.Set ("Jerk_Max", To_TOML (Limits.Jerk_Max / (mm / s**3)));
-      Table.Set ("Snap_Max", To_TOML (Limits.Snap_Max / (mm / s**4)));
-      Table.Set ("Crackle_Max", To_TOML (Limits.Crackle_Max / (mm / s**5)));
-      Table.Set ("Chord_Error_Max", To_TOML (Limits.Chord_Error_Max / mm));
+      for I in Vels'Range loop
+         Table.Set (I'Image, To_TOML (Vels (I) / (mm / s)));
+      end loop;
       return Table;
    end To_TOML;
 
-   function From_TOML (Table : TOML_Value) return Motion_Planner.Kinematic_Limits is
+   function From_TOML (Table : TOML_Value) return Axial_Velocities is
+      Vels : Axial_Velocities;
    begin
-      return
-        (Acceleration_Max => From_TOML (Table.Get ("Acceleration_Max")) * mm / s**2,
-         Jerk_Max         => From_TOML (Table.Get ("Jerk_Max")) * mm / s**3,
-         Snap_Max         => From_TOML (Table.Get ("Snap_Max")) * mm / s**4,
-         Crackle_Max      => From_TOML (Table.Get ("Crackle_Max")) * mm / s**5,
-         Chord_Error_Max  => From_TOML (Table.Get ("Chord_Error_Max")) * mm);
+      for I in Vels'Range loop
+         Vels (I) := From_TOML (Table.Get (I'Image)) * mm / s;
+      end loop;
+      return Vels;
    end From_TOML;
 
    function To_TOML (Scale : Position_Scale) return TOML_Value is
@@ -156,22 +153,41 @@ package body Config.Config is
       return Scale;
    end From_TOML;
 
-   function To_TOML (Vels : Axial_Velocities) return TOML_Value is
+   function To_TOML (Params : Motion_Planner.Kinematic_Parameters) return TOML_Value is
       Table : constant TOML_Value := Create_Table;
    begin
-      for I in Vels'Range loop
-         Table.Set (I'Image, To_TOML (Vels (I) / (mm / s)));
-      end loop;
+      Table.Set ("Lower_Pos_Limit", To_TOML (Params.Lower_Pos_Limit));
+      Table.Set ("Upper_Pos_Limit", To_TOML (Params.Upper_Pos_Limit));
+      Table.Set ("Ignore_E_In_XYZE", To_TOML (Params.Ignore_E_In_XYZE));
+      Table.Set ("Shift_Blended_Corners", To_TOML (Params.Shift_Blended_Corners));
+      Table.Set ("Tangential_Velocity_Max", To_TOML (Params.Tangential_Velocity_Max / (mm / s)));
+      Table.Set ("Axial_Velocity_Maxes", To_TOML (Params.Axial_Velocity_Maxes));
+      Table.Set ("Pressure_Advance_Time", To_TOML (Params.Pressure_Advance_Time / s));
+      Table.Set ("Acceleration_Max", To_TOML (Params.Acceleration_Max / (mm / s**2)));
+      Table.Set ("Jerk_Max", To_TOML (Params.Jerk_Max / (mm / s**3)));
+      Table.Set ("Snap_Max", To_TOML (Params.Snap_Max / (mm / s**4)));
+      Table.Set ("Crackle_Max", To_TOML (Params.Crackle_Max / (mm / s**5)));
+      Table.Set ("Chord_Error_Max", To_TOML (Params.Chord_Error_Max / mm));
+      Table.Set ("Higher_Order_Scaler", To_TOML (Params.Higher_Order_Scaler));
       return Table;
    end To_TOML;
 
-   function From_TOML (Table : TOML_Value) return Axial_Velocities is
-      Vels : Axial_Velocities;
+   function From_TOML (Table : TOML_Value) return Motion_Planner.Kinematic_Parameters is
    begin
-      for I in Vels'Range loop
-         Vels (I) := From_TOML (Table.Get (I'Image)) * mm / s;
-      end loop;
-      return Vels;
+      return
+        (Lower_Pos_Limit         => From_TOML (Table.Get ("Lower_Pos_Limit")),
+         Upper_Pos_Limit         => From_TOML (Table.Get ("Upper_Pos_Limit")),
+         Ignore_E_In_XYZE        => From_TOML (Table.Get ("Ignore_E_In_XYZE")),
+         Shift_Blended_Corners   => From_TOML (Table.Get ("Shift_Blended_Corners")),
+         Tangential_Velocity_Max => From_TOML (Table.Get ("Tangential_Velocity_Max")) * mm / s,
+         Axial_Velocity_Maxes    => From_TOML (Table.Get ("Axial_Velocity_Maxes")),
+         Pressure_Advance_Time   => From_TOML (Table.Get ("Pressure_Advance_Time")) * s,
+         Acceleration_Max        => From_TOML (Table.Get ("Acceleration_Max")) * mm / s**2,
+         Jerk_Max                => From_TOML (Table.Get ("Jerk_Max")) * mm / s**3,
+         Snap_Max                => From_TOML (Table.Get ("Snap_Max")) * mm / s**4,
+         Crackle_Max             => From_TOML (Table.Get ("Crackle_Max")) * mm / s**5,
+         Chord_Error_Max         => From_TOML (Table.Get ("Chord_Error_Max")) * mm,
+         Higher_Order_Scaler     => From_TOML (Table.Get ("Higher_Order_Scaler")));
    end From_TOML;
 
    --  TODO: It might make sense to make these recursively merge tables.
@@ -271,16 +287,9 @@ package body Config.Config is
                Data.A_Steppers := From_TOML (Table.Get ("A_Steppers"));
                Data.B_Steppers := From_TOML (Table.Get ("B_Steppers"));
          end case;
-         Data.Lower_Pos_Limit                 := From_TOML (Table.Get ("Lower_Pos_Limit"));
-         Data.Upper_Pos_Limit                 := From_TOML (Table.Get ("Upper_Pos_Limit"));
-         Data.Max_Limits                      := From_TOML (Table.Get ("Max_Limits"));
-         Data.Max_Feedrate                    := From_TOML (Table.Get ("Max_Feedrate")) * mm / s;
-         Data.Max_Axial_Velocities            := From_TOML (Table.Get ("Max_Axial_Velocities"));
-         Data.Ignore_E_Feedrate_In_XYZE_Moves := From_TOML (Table.Get ("Ignore_E_Feedrate_In_XYZE_Moves"));
-         Data.Planning_Scaler                 := From_TOML (Table.Get ("Planning_Scaler"));
-         Data.Minimum_Cruise_Ratio            := From_TOML (Table.Get ("Minimum_Cruise_Ratio"));
-         Data.Z_Steppers                      := From_TOML (Table.Get ("Z_Steppers"));
-         Data.E_Steppers                      := From_TOML (Table.Get ("E_Steppers"));
+         Data.Planner_Parameters := From_TOML (Table.Get ("Planner_Parameters"));
+         Data.Z_Steppers         := From_TOML (Table.Get ("Z_Steppers"));
+         Data.E_Steppers         := From_TOML (Table.Get ("E_Steppers"));
       end Read;
 
       procedure Write (Data : Kinematics_Parameters; Append_Only : Boolean := False) is
@@ -295,14 +304,7 @@ package body Config.Config is
                Table.Set ("A_Steppers", To_TOML (Data.A_Steppers));
                Table.Set ("B_Steppers", To_TOML (Data.B_Steppers));
          end case;
-         Table.Set ("Lower_Pos_Limit", To_TOML (Data.Lower_Pos_Limit));
-         Table.Set ("Upper_Pos_Limit", To_TOML (Data.Upper_Pos_Limit));
-         Table.Set ("Max_Limits", To_TOML (Data.Max_Limits));
-         Table.Set ("Max_Feedrate", To_TOML (Data.Max_Feedrate / (mm / s)));
-         Table.Set ("Max_Axial_Velocities", To_TOML (Data.Max_Axial_Velocities));
-         Table.Set ("Ignore_E_Feedrate_In_XYZE_Moves", To_TOML (Data.Ignore_E_Feedrate_In_XYZE_Moves));
-         Table.Set ("Planning_Scaler", To_TOML (Data.Planning_Scaler));
-         Table.Set ("Minimum_Cruise_Ratio", To_TOML (Data.Minimum_Cruise_Ratio));
+         Table.Set ("Planner_Parameters", To_TOML (Data.Planner_Parameters));
          Table.Set ("Z_Steppers", To_TOML (Data.Z_Steppers));
          Table.Set ("E_Steppers", To_TOML (Data.E_Steppers));
 

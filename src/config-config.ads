@@ -57,21 +57,9 @@ package Config.Config is
    type Kinematics_Kind is (Cartesian_Kind, Core_XY_Kind);
 
    type Kinematics_Parameters (Kind : Kinematics_Kind := Cartesian_Kind) is record
-      Lower_Pos_Limit                 : Position := [E_Axis => Length'First / 2.0, others => 0.0 * mm];
-      Upper_Pos_Limit                 : Position := [E_Axis => Length'Last / 2.0, others => 0.0 * mm];
-      Max_Limits                      : Motion_Planner.Kinematic_Limits :=
-        (Acceleration_Max => 0.0 * mm / s**2,
-         Jerk_Max         => 0.0 * mm / s**3,
-         Snap_Max         => 0.0 * mm / s**4,
-         Crackle_Max      => 0.0 * mm / s**5,
-         Chord_Error_Max  => 0.0 * mm);
-      Max_Feedrate                    : Velocity                        := 0.0 * mm / s;
-      Max_Axial_Velocities            : Axial_Velocities                := [others => 0.0 * mm / s];
-      Ignore_E_Feedrate_In_XYZE_Moves : Boolean                         := True;
-      Planning_Scaler                 : Position_Scale                  := [others => 1.0];
-      Minimum_Cruise_Ratio            : Cruise_Ratio                    := Cruise_Ratio'First;
-      Z_Steppers                      : Attached_Steppers               := [others => False];
-      E_Steppers                      : Attached_Steppers               := [others => False];
+      Planner_Parameters : Motion_Planner.Kinematic_Parameters := (others => <>);
+      Z_Steppers         : Attached_Steppers                   := [others => False];
+      E_Steppers         : Attached_Steppers                   := [others => False];
       case Kind is
          when Cartesian_Kind =>
             X_Steppers : Attached_Steppers := [others => False];
