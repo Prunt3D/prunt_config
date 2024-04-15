@@ -90,9 +90,8 @@ package Config.Config is
    end record;
 
    type Extruder_Parameters is record
-      Nozzle_Diameter                : Length := 0.4 * mm;
-      Filament_Diameter              : Length := 1.75 * mm;
-      Starting_Pressure_Advance_Time : Time   := 0.0 * s;
+      Nozzle_Diameter   : Length := 0.4 * mm;
+      Filament_Diameter : Length := 1.75 * mm;
    end record;
 
    type Thermistor_Parameters is record

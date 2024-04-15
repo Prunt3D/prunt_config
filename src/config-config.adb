@@ -402,9 +402,8 @@ package body Config.Config is
          Write (Data, Append_Only => True);
          Table := TOML_Data.Get ("Extruder");
 
-         Data.Nozzle_Diameter                := From_TOML (Table.Get ("Nozzle_Diameter")) * mm;
-         Data.Filament_Diameter              := From_TOML (Table.Get ("Filament_Diameter")) * mm;
-         Data.Starting_Pressure_Advance_Time := From_TOML (Table.Get ("Starting_Pressure_Advance_Time")) * s;
+         Data.Nozzle_Diameter   := From_TOML (Table.Get ("Nozzle_Diameter")) * mm;
+         Data.Filament_Diameter := From_TOML (Table.Get ("Filament_Diameter")) * mm;
       end Read;
 
       procedure Write (Data : Extruder_Parameters; Append_Only : Boolean := False) is
@@ -412,7 +411,6 @@ package body Config.Config is
       begin
          Table.Set ("Nozzle_Diameter", To_TOML (Data.Nozzle_Diameter / mm));
          Table.Set ("Filament_Diameter", To_TOML (Data.Filament_Diameter / mm));
-         Table.Set ("Starting_Pressure_Advance_Time", To_TOML (Data.Starting_Pressure_Advance_Time / s));
 
          Maybe_Read_File;
          TOML_Data.Set_Default ("Extruder", Create_Table);
