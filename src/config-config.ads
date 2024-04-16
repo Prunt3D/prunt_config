@@ -80,10 +80,11 @@ package Config.Config is
    type Homing_Parameters (Kind : Homing_Kind := Double_Tap_Kind) is record
       case Kind is
          when Double_Tap_Kind =>
-            Switch               : Input_Switch_Name := Input_Switch_Name'First;
-            First_Move_Distance  : Length            := 0.0 * mm;
-            Second_Move_Distance : Length            := 0.0 * mm;
-            Switch_Position      : Length            := 0.0 * mm;
+            Switch                 : Input_Switch_Name := Input_Switch_Name'First;
+            First_Move_Distance    : Length            := 0.0 * mm;
+            Back_Off_Move_Distance : Length            := 0.0 * mm;
+            Second_Move_Distance   : Length            := 0.0 * mm;
+            Switch_Position        : Length            := 0.0 * mm;
          when Set_To_Value_Kind =>
             Value : Length := 0.0 * mm;
       end case;
